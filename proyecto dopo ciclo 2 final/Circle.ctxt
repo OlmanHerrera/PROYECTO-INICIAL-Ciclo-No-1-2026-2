@@ -1,0 +1,18 @@
+#BlueJ class context
+#Sun Sep 06 22:56:18 EST 2026
+comment0.target=Circle
+comment0.text=\r\n Un circulo que puede ser manipulado y se dibuja en un canvas.\r\n
+comment1.target=Circle()
+comment2.target=void makeVisible()
+comment3.target=void makeInvisible()
+comment4.params=distance
+comment4.target=void moveHorizontal(int)
+comment5.params=distance
+comment5.target=void moveVertical(int)
+comment6.params=newDiameter
+comment6.target=void changeSize(int)
+comment7.params=newColor
+comment7.target=void changeColor(java.lang.String)
+comment8.target=void draw()
+comment9.target=void erase()
+numComments=10

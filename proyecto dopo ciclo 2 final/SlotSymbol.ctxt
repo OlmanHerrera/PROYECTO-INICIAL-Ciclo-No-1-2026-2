@@ -1,0 +1,28 @@
+#BlueJ class context
+#Sun Sep 06 22:56:13 EST 2026
+comment0.target=SlotSymbol
+comment0.text=\r\n Simbolo grafico de una rueda de la maquina tragamonedas.\r\n Puede cambiar de color y tambien de forma durante el giro.\r\n
+comment1.target=SlotSymbol()
+comment10.params=requested
+comment10.target=java.lang.String visibleColor(java.lang.String)
+comment11.target=void draw()
+comment12.target=void erase()
+comment13.target=java.awt.Shape buildShape()
+comment14.params=points
+comment14.target=java.awt.Shape regularStar(int)
+comment2.target=void makeVisible()
+comment3.target=void makeInvisible()
+comment4.params=distance
+comment4.target=void moveHorizontal(int)
+comment5.params=distance
+comment5.target=void moveVertical(int)
+comment6.params=newSize
+comment6.target=void changeSize(int)
+comment7.params=newColor
+comment7.target=void changeColor(java.lang.String)
+comment8.params=newType
+comment8.target=void changeType(java.lang.String)
+comment9.params=newColor newType
+comment9.target=void changeSymbol(java.lang.String, java.lang.String)
+comment9.text=Cambia color y forma con un solo redibujado.
+numComments=15
