@@ -2,27 +2,24 @@ import java.util.ArrayList;
 import java.util.Random;
 
 /**
- * Represetacion de una rueda de la maquina tragamonedas
+ * Representacion de una rueda de la maquina tragamonedas
  *
  * @author Olman Alejandro Herrera || Ahmad Mustafayasser Diaz 
- * @version 0.1 (provisional)
+ * @version 0.2
  */
 public class Wheel {
 
     private ArrayList<String> symbols;
     private int currentIndex;
+    private boolean locked;
     private static Random rnd = new Random();
 
     public Wheel() {
         symbols = new ArrayList<String>();
         currentIndex = -1;
+        locked = false;
     }
 
-    /**
-     * Inserta un simbolo en la posicion indicada
-     * @param pos posicion 
-     * @param color color del simbolo
-     */
     public void addSymbol(int pos, String color) {
         symbols.add(pos - 1, color);
         if (currentIndex == -1) {
@@ -30,11 +27,6 @@ public class Wheel {
         }
     }
 
-    /**
-     * Elimina la primera ocurrencia del color indicado.
-     * @param color color a eliminar
-     * @return true si se elimino algun simbolo
-     */
     public boolean delSymbol(String color) {
         boolean removed = symbols.remove(color);
         if (removed && (symbols.isEmpty())) {
@@ -45,11 +37,6 @@ public class Wheel {
         return removed;
     }
 
-    /**
-     * Fija el simbolo visible de la rueda, si existe entre sus simbolos.
-     * @param color color a mostrar
-     * @return true si el color existe en la rueda
-     */
     public boolean setCurrent(String color) {
         int idx = symbols.indexOf(color);
         if (idx == -1) {
@@ -59,9 +46,6 @@ public class Wheel {
         return true;
     }
 
-    /**
-     * @return el color actualmente visible en la rueda, o null si no hay simbolos
-     */
     public String getCurrent() {
         if (currentIndex == -1 || symbols.isEmpty()) {
             return null;
@@ -69,25 +53,41 @@ public class Wheel {
         return symbols.get(currentIndex);
     }
 
-    /**
-     * Selecciona al azar un nuevo simbolo visible.
-     */
     public void spin() {
-        if (!symbols.isEmpty()) {
+        if (!symbols.isEmpty() && !locked) {
             currentIndex = rnd.nextInt(symbols.size());
         }
     }
-
+    
     /**
-     * @return los colores de los simbolos de la rueda en orden (desde 1)
+     * Gira la rueda una cantidad de pasos dada. 
+     * Soporta pasos negativos para girar en reversa.
      */
+    public void spin(int steps) {
+        if (!symbols.isEmpty() && !locked) {
+            currentIndex = (currentIndex + steps) % symbols.size();
+            if (currentIndex < 0) {
+                currentIndex += symbols.size();
+            }
+        }
+    }
+    
+    public void lock() {
+        locked = true;
+    }
+    
+    public void unlock() {
+        locked = false;
+    }
+    
+    public boolean isLocked() {
+        return locked;
+    }
+
     public ArrayList<String> getSymbols() {
         return symbols;
     }
 
-    /**
-     * @return cantidad de simbolos en la rueda
-     */
     public int size() {
         return symbols.size();
     }

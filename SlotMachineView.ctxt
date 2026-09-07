@@ -1,34 +1,28 @@
 #BlueJ class context
-#Sun Aug 23 19:29:52 COT 2026
+#Sun Sep 06 21:11:14 EST 2026
 comment0.target=SlotMachineView
-comment0.text=\r\n Dibuja la maquina tragamonedas usando el paquete shapes\: un Rectangle\r\n grande como cuerpo y un Rectangle por cada rueda, que se pinta\r\n directamente con el color del simbolo que esta visible en ese momento.\r\n \r\n @author Olman Alejandro Herrera || Ahmad Mustafayasser Diaz\r\n\r\n
+comment0.text=\r\n Dibuja la maquina tragamonedas manteniendo el fondo de la rueda blanco \r\n y mostrando el simbolo geometrico centrado sin tapar el cuerpo.\r\n \r\n @author Olman Alejandro Herrera || Ahmad Mustafayasser Diaz\r\n
 comment1.target=SlotMachineView()
 comment10.target=void addWheelShape()
 comment11.target=void removeLastWheelShape()
 comment12.params=wheelCount
 comment12.target=void layout(int)
-comment12.text=\r\n Recalcula tamano del cuerpo y posicion de cada rueda segun\r\n cuantas hay, moviendo cada figura desde donde quedo la ultima vez.\r\n
-comment13.params=x y
-comment13.target=void moveBodyTo(int, int)
-comment14.params=shape currentPos x y
-comment14.target=void moveTo(Rectangle, int[], int, int)
+comment13.target=void redistributeLayers()
+comment14.params=x y
+comment14.target=void moveBodyTo(int, int)
+comment15.params=shape currentPos x y isCircle
+comment15.target=void moveShape(java.lang.Object, int[], int, int, boolean)
 comment2.params=wheelCount
 comment2.target=void sync(int)
-comment2.text=\r\n Ajusta cuantas ruedas se estan mostrando \r\n
 comment3.params=symbolSets
 comment3.target=void setSymbolSets(java.util.ArrayList)
-comment3.text=\r\n Guarda, para cada rueda, el conjunto completo de simbolos que\r\n tiene disponibles. Se usa despues para el efecto visual del spin.\r\n
 comment4.params=configuration
 comment4.target=void updateSymbols(java.lang.String[])
-comment4.text=\r\n Pinta cada rueda con el color de su simbolo visible actual.\r\n
 comment5.params=wheelIndex
 comment5.target=void spinEffect(int)
-comment5.text=\r\n Efecto visual de giro para una sola rueda\: cambia su color varias\r\n veces rapido, tomando colores al azar del propio conjunto de\r\n simbolos de esa rueda. El color final lo deja despues updateSymbols.\r\n
 comment6.target=void spinEffectAll()
-comment6.text=\r\n Aplica el efecto de giro a todas las ruedas (para el spin general).\r\n
 comment7.params=jackpot
 comment7.target=void setJackpot(boolean)
-comment7.text=\r\n Cambia el color del cuerpo de la maquina para mostrar que hay jackpot\r\n
 comment8.target=void makeVisible()
 comment9.target=void makeInvisible()
-numComments=15
+numComments=16

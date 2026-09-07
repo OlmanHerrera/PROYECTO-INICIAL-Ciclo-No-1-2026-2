@@ -1,13 +1,12 @@
 import java.util.ArrayList;
 import java.util.Random;
 
+
 /**
- * Dibuja la maquina tragamonedas usando el paquete shapes: un Rectangle
- * grande como cuerpo y un Rectangle por cada rueda, que se pinta
- * directamente con el color del simbolo que esta visible en ese momento.
+ * Dibuja la maquina tragamonedas manteniendo el fondo de la rueda blanco 
+ * y mostrando el simbolo geometrico centrado sin tapar el cuerpo.
  * 
  * @author Olman Alejandro Herrera || Ahmad Mustafayasser Diaz
- *
  */
 public class SlotMachineView {
 
@@ -19,19 +18,25 @@ public class SlotMachineView {
     private static final int BODY_LEFT = 40;
     private static final String NORMAL_BODY_COLOR = "blue";
     private static final String JACKPOT_BODY_COLOR = "yellow";
-    private static final String EMPTY_COLOR = "white";
+    private static final String EMPTY_COLOR = "white"; 
     private static final int SPIN_FLICKERS = 5;
 
     private static final int RECTANGLE_DEFAULT_X = 70;
     private static final int RECTANGLE_DEFAULT_Y = 15;
+    
+    private static final int CIRCLE_DEFAULT_X = 20; 
+    private static final int CIRCLE_DEFAULT_Y = 60;
 
     private Rectangle body;
     private int bodyX;
     private int bodyY;
 
-    private ArrayList<Rectangle> wheelShapes;
-    private ArrayList<int[]> wheelPositions;      
+    private ArrayList<Rectangle> wheelBackgrounds;
+    private ArrayList<Circle> wheelSymbols; 
+    private ArrayList<int[]> wheelBgPositions;      
+    private ArrayList<int[]> wheelSymbolPositions;      
     private ArrayList<ArrayList<String>> wheelSymbolSets;
+    
     private boolean shown;
     private Random rnd;
 
@@ -39,134 +44,169 @@ public class SlotMachineView {
         body = new Rectangle();
         bodyX = RECTANGLE_DEFAULT_X;
         bodyY = RECTANGLE_DEFAULT_Y;
-        wheelShapes = new ArrayList<Rectangle>();
-        wheelPositions = new ArrayList<int[]>();
+        
+        wheelBackgrounds = new ArrayList<Rectangle>();
+        wheelSymbols = new ArrayList<Circle>();
+        wheelBgPositions = new ArrayList<int[]>();
+        wheelSymbolPositions = new ArrayList<int[]>();
         wheelSymbolSets = new ArrayList<ArrayList<String>>();
+        
         shown = false;
         rnd = new Random();
         body.changeColor(NORMAL_BODY_COLOR);
     }
 
-    /**
-     * Ajusta cuantas ruedas se estan mostrando 
-     */
     public void sync(int wheelCount) {
-        while (wheelShapes.size() < wheelCount) {
+        while (wheelBackgrounds.size() < wheelCount) {
             addWheelShape();
         }
-        while (wheelShapes.size() > wheelCount) {
+        while (wheelBackgrounds.size() > wheelCount) {
             removeLastWheelShape();
         }
         layout(wheelCount);
     }
 
-    /**
-     * Guarda, para cada rueda, el conjunto completo de simbolos que
-     * tiene disponibles. Se usa despues para el efecto visual del spin.
-     */
     public void setSymbolSets(ArrayList<ArrayList<String>> symbolSets) {
         wheelSymbolSets = symbolSets;
     }
 
-    /**
-     * Pinta cada rueda con el color de su simbolo visible actual.
-     */
     public void updateSymbols(String[] configuration) {
-        for (int i = 0; i < configuration.length && i < wheelShapes.size(); i++) {
+        for (int i = 0; i < configuration.length && i < wheelSymbols.size(); i++) {
             String color = configuration[i];
-            wheelShapes.get(i).changeColor(color == null ? EMPTY_COLOR : color); // Si una rueda no tiene simbolo visible, se deja en blanco.
+            Circle symbolShape = wheelSymbols.get(i);
+            
+            // Forzamos que el fondo de la rueda siempre sea blanco
+            wheelBackgrounds.get(i).changeColor(EMPTY_COLOR);
+
+            if (color == null) {
+                symbolShape.makeInvisible();
+            } else {
+                symbolShape.changeColor(color);
+                if (shown) {
+                    symbolShape.makeVisible();
+                }
+            }
         }
     }
 
-    /**
-     * Efecto visual de giro para una sola rueda: cambia su color varias
-     * veces rapido, tomando colores al azar del propio conjunto de
-     * simbolos de esa rueda. El color final lo deja despues updateSymbols.
-     */
     public void spinEffect(int wheelIndex) {
-        if (wheelIndex < 0 || wheelIndex >= wheelShapes.size()) {
-            return;
-        }
-        if (wheelIndex >= wheelSymbolSets.size()) {
+        if (wheelIndex < 0 || wheelIndex >= wheelSymbols.size() || wheelIndex >= wheelSymbolSets.size()) {
             return;
         }
         ArrayList<String> set = wheelSymbolSets.get(wheelIndex);
         if (set == null || set.isEmpty()) {
             return;
         }
-        Rectangle wheel = wheelShapes.get(wheelIndex);
+        Circle symbolShape = wheelSymbols.get(wheelIndex);
+        if (!shown) return;
+        
+        symbolShape.makeVisible();
         for (int i = 0; i < SPIN_FLICKERS; i++) {
-            wheel.changeColor(set.get(rnd.nextInt(set.size())));
+            symbolShape.changeColor(set.get(rnd.nextInt(set.size())));
         }
     }
 
-    /**
-     * Aplica el efecto de giro a todas las ruedas (para el spin general).
-     */
     public void spinEffectAll() {
-        for (int i = 0; i < wheelShapes.size(); i++) {
+        for (int i = 0; i < wheelSymbols.size(); i++) {
             spinEffect(i);
         }
     }
 
-    /**
-     * Cambia el color del cuerpo de la maquina para mostrar que hay jackpot
-     */
     public void setJackpot(boolean jackpot) {
+        // Cambia el color del cuerpo exterior, pero redibuja los elementos internos para que no los tape
         body.changeColor(jackpot ? JACKPOT_BODY_COLOR : NORMAL_BODY_COLOR);
+        if (shown) {
+            redistributeLayers();
+        }
     }
 
     public void makeVisible() {
         shown = true;
         body.makeVisible();
-        for (Rectangle wheel : wheelShapes) {
-            wheel.makeVisible();
+        for (Rectangle bg : wheelBackgrounds) {
+            bg.makeVisible();
+        }
+        for (Circle symbol : wheelSymbols) {
+            symbol.makeVisible();
         }
     }
 
     public void makeInvisible() {
         shown = false;
         body.makeInvisible();
-        for (Rectangle wheel : wheelShapes) {
-            wheel.makeInvisible();
+        for (Rectangle bg : wheelBackgrounds) {
+            bg.makeInvisible();
+        }
+        for (Circle symbol : wheelSymbols) {
+            symbol.makeInvisible();
         }
     }
 
     private void addWheelShape() {
-        Rectangle wheel = new Rectangle();
-        wheel.changeColor(EMPTY_COLOR);
+        Rectangle bg = new Rectangle();
+        bg.changeColor(EMPTY_COLOR); 
+        
+        Circle symbol = new Circle(); 
+        
         if (shown) {
-            wheel.makeVisible();
+            bg.makeVisible();
+            symbol.makeVisible();
         }
-        wheelShapes.add(wheel);
-        wheelPositions.add(new int[] {RECTANGLE_DEFAULT_X, RECTANGLE_DEFAULT_Y});
+        
+        wheelBackgrounds.add(bg);
+        wheelSymbols.add(symbol);
+        wheelBgPositions.add(new int[] {RECTANGLE_DEFAULT_X, RECTANGLE_DEFAULT_Y});
+        wheelSymbolPositions.add(new int[] {CIRCLE_DEFAULT_X, CIRCLE_DEFAULT_Y});
     }
 
     private void removeLastWheelShape() {
-        int last = wheelShapes.size() - 1;
-        wheelShapes.get(last).makeInvisible();
-        wheelShapes.remove(last);
-        wheelPositions.remove(last);
+        int last = wheelBackgrounds.size() - 1;
+        wheelBackgrounds.get(last).makeInvisible();
+        wheelSymbols.get(last).makeInvisible();
+        
+        wheelBackgrounds.remove(last);
+        wheelSymbols.remove(last);
+        wheelBgPositions.remove(last);
+        wheelSymbolPositions.remove(last);
     }
 
-    /**
-     * Recalcula tamano del cuerpo y posicion de cada rueda segun
-     * cuantas hay, moviendo cada figura desde donde quedo la ultima vez.
-     */
     private void layout(int wheelCount) {
-        int bodyWidth = wheelCount == 0
-            ? WHEEL_WIDTH + 2 * MARGIN
-            : 2 * MARGIN + wheelCount * WHEEL_WIDTH + (wheelCount - 1) * WHEEL_GAP;
+        int effectiveCount = Math.max(wheelCount, 1);
+        int bodyWidth = 2 * MARGIN + effectiveCount * WHEEL_WIDTH + (effectiveCount - 1) * WHEEL_GAP;
         int bodyHeight = WHEEL_HEIGHT + 2 * MARGIN;
 
         body.changeSize(bodyHeight, bodyWidth);
         moveBodyTo(BODY_LEFT, BODY_TOP);
 
         for (int i = 0; i < wheelCount; i++) {
-            int x = BODY_LEFT + MARGIN + i * (WHEEL_WIDTH + WHEEL_GAP);
-            int y = BODY_TOP + MARGIN;
-            wheelShapes.get(i).changeSize(WHEEL_HEIGHT, WHEEL_WIDTH);
-            moveTo(wheelShapes.get(i), wheelPositions.get(i), x, y);
+            int xBg = BODY_LEFT + MARGIN + i * (WHEEL_WIDTH + WHEEL_GAP);
+            int yBg = BODY_TOP + MARGIN;
+            
+            wheelBackgrounds.get(i).changeSize(WHEEL_HEIGHT, WHEEL_WIDTH);
+            moveShape(wheelBackgrounds.get(i), wheelBgPositions.get(i), xBg, yBg, false);
+            
+            // Centrar la figura dentro de la rueda
+            int xSym = xBg + (WHEEL_WIDTH / 2) - 15; 
+            int ySym = yBg + (WHEEL_HEIGHT / 2) - 15; 
+            moveShape(wheelSymbols.get(i), wheelSymbolPositions.get(i), xSym, ySym, true);
+        }
+        
+        if (shown) {
+            redistributeLayers();
+        }
+    }
+
+    // Asegura el orden correcto de las capas en el Canvas (Cuerpo -> Fondos de ruedas -> Figuras)
+    private void redistributeLayers() {
+        body.makeInvisible();
+        body.makeVisible();
+        
+        for (int i = 0; i < wheelBackgrounds.size(); i++) {
+            wheelBackgrounds.get(i).makeInvisible();
+            wheelBackgrounds.get(i).makeVisible();
+            
+            wheelSymbols.get(i).makeInvisible();
+            wheelSymbols.get(i).makeVisible();
         }
     }
 
@@ -177,9 +217,18 @@ public class SlotMachineView {
         bodyY = y;
     }
 
-    private void moveTo(Rectangle shape, int[] currentPos, int x, int y) {
-        shape.moveHorizontal(x - currentPos[0]);
-        shape.moveVertical(y - currentPos[1]);
+    private void moveShape(Object shape, int[] currentPos, int x, int y, boolean isCircle) {
+        int dx = x - currentPos[0];
+        int dy = y - currentPos[1];
+        
+        if (isCircle) {
+            ((Circle) shape).moveHorizontal(dx);
+            ((Circle) shape).moveVertical(dy);
+        } else {
+            ((Rectangle) shape).moveHorizontal(dx);
+            ((Rectangle) shape).moveVertical(dy);
+        }
+        
         currentPos[0] = x;
         currentPos[1] = y;
     }

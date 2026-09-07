@@ -1,10 +1,9 @@
 import java.util.ArrayList;
-import javax.swing.JOptionPane;
 
 /**
  * Simulador de una maquina tragamonedas.
  * @author Olman Alejandro Herrera  || Ahmad Mustafayasser Diaz
- * @version 1.1
+ * @version 1.2
  */
 public class slotMachine {
 
@@ -13,9 +12,6 @@ public class slotMachine {
     private boolean visible;
     private boolean ok;
 
-    /**
-     * Crea una maquina tragamonedas sin ruedas, visible por defecto.
-     */
     public slotMachine() {
         wheels = new ArrayList<Wheel>();
         view = new SlotMachineView();
@@ -24,12 +20,6 @@ public class slotMachine {
         view.makeVisible();
     }
 
-    /**
-     * Adiciona una rueda vacia en la posicion indicada.
-     * Si pos es menor a 1 se usa 1; si es mayor al maximo permitido
-     * (cantidad actual de ruedas + 1) se usa ese maximo.
-     * @param pos posicion donde insertar la rueda (1-normalizado (based))
-     */
     public void addWheel(int pos) {
         int index = normalize(pos, wheels.size() + 1);
         wheels.add(index - 1, new Wheel());
@@ -37,12 +27,9 @@ public class slotMachine {
         refreshView();
     }
 
-    /**
-     * Elimina la rueda en la posicion indicada.
-     * @param pos posicion de la rueda a eliminar
-     */
     public void delWheel(int pos) {
         if (wheels.isEmpty()) {
+            ok = false;
             return;
         }
         int index = normalize(pos, wheels.size());
@@ -52,13 +39,47 @@ public class slotMachine {
     }
 
     /**
-     * Adiciona un simbolo del color indicado, en la posicion pos, en
-     * todas las ruedas de la maquina.
-     * @param pos posicion dentro de cada rueda 
-     * @param color color del simbolo
+     * Intercambia la posicion de dos ruedas.
      */
+    public void swap(int wheel1, int wheel2) {
+        if (validWheel(wheel1) && validWheel(wheel2)) {
+            Wheel temp = wheels.get(wheel1 - 1);
+            wheels.set(wheel1 - 1, wheels.get(wheel2 - 1));
+            wheels.set(wheel2 - 1, temp);
+            ok = true;
+            refreshView();
+        } else {
+            ok = false;
+        }
+    }
+
+    /**
+     * Fija una rueda para que no gire.
+     */
+    public void lock(int wheel) {
+        if (validWheel(wheel)) {
+            wheels.get(wheel - 1).lock();
+            ok = true;
+        } else {
+            ok = false;
+        }
+    }
+
+    /**
+     * Suelta una rueda fijada.
+     */
+    public void unlock(int wheel) {
+        if (validWheel(wheel)) {
+            wheels.get(wheel - 1).unlock();
+            ok = true;
+        } else {
+            ok = false;
+        }
+    }
+
     public void addSymbol(int pos, String color) {
         if (wheels.isEmpty()) {
+            ok = false;
             return;
         }
         for (Wheel w : wheels) {
@@ -69,10 +90,6 @@ public class slotMachine {
         refreshView();
     }
 
-    /**
-     * Elimina el simbolo del color indicado de todas las ruedas donde exista.
-     * @param symbol color del simbolo a eliminar
-     */
     public void delSymbol(String symbol) {
         boolean removedAny = false;
         for (Wheel w : wheels) {
@@ -81,35 +98,30 @@ public class slotMachine {
             }
         }
         if (!removedAny) {
+            ok = false;
             return;
         }
         ok = true;
         refreshView();
     }
 
-    /**
-     * Ubica manualmente un simbolo como el visible en una rueda especifica.
-     * @param wheel indice de la rueda
-     * @param symbol color CSS del simbolo a mostrar
-     */
     public void placeSymbol(int wheel, String symbol) {
         if (!validWheel(wheel)) {
+            ok = false;
             return;
         }
         Wheel w = wheels.get(wheel - 1);
         if (!w.setCurrent(symbol)) {
+            ok = false;
             return;
         }
         ok = true;
         refreshView();
     }
 
-    /**
-     * Gira una rueda especifica.
-     * @param wheel indice de la rueda (1-based)
-     */
     public void spin(int wheel) {
-        if (!validWheel(wheel)) {
+        if (!validWheel(wheel) || wheels.get(wheel - 1).isLocked()) {
+            ok = false;
             return;
         }
         view.spinEffect(wheel - 1);
@@ -119,25 +131,67 @@ public class slotMachine {
     }
 
     /**
-     * Gira todas las ruedas de la maquina.
+     * Rota una rueda un numero de pasos visiblemente paso a paso.
      */
+    public void spin(int wheel, int steps) {
+        if (!validWheel(wheel) || wheels.get(wheel - 1).isLocked()) {
+            ok = false;
+            return;
+        }
+        Wheel w = wheels.get(wheel - 1);
+        int direction = steps >= 0 ? 1 : -1;
+        int absSteps = Math.abs(steps);
+        
+        for (int i = 0; i < absSteps; i++) {
+            w.spin(direction);
+            refreshView();
+            if (visible) {
+                try {
+                    Thread.sleep(150); // Simula el paso a paso visual
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }
+        ok = true;
+    }
+
+    /**
+     * Deja la maquina en una configuracion dada.
+     */
+    public void spin(String[] setSymbols) {
+        if (setSymbols == null || setSymbols.length != wheels.size()) {
+            ok = false;
+            return;
+        }
+        boolean allSuccess = true;
+        for (int i = 0; i < wheels.size(); i++) {
+            Wheel w = wheels.get(i);
+            if (!w.isLocked()) {
+                if (!w.setCurrent(setSymbols[i])) {
+                    allSuccess = false; // Falla si un simbolo no existe en la rueda
+                }
+            }
+        }
+        ok = allSuccess;
+        refreshView();
+    }
+
     public void spin() {
         if (wheels.isEmpty()) {
+            ok = false;
             return;
         }
         view.spinEffectAll();
         for (Wheel w : wheels) {
-            w.spin();
+            if (!w.isLocked()) {
+                w.spin();
+            }
         }
         ok = true;
         refreshView();
     }
 
-    /**
-     * Retorna todos los colores de los simbolos de la maquina, rueda por
-     * rueda, en el orden en que estan definidos dentro de cada una (desde 1).
-     * @return arreglo con los colores de los simbolos
-     */
     public String[] symbols() {
         ArrayList<String> all = new ArrayList<String>();
         for (Wheel w : wheels) {
@@ -147,11 +201,6 @@ public class slotMachine {
         return all.toArray(new String[0]);
     }
 
-    /**
-     * Cuenta la cantidad de colores distintos entre todos los simbolos
-     * de la maquina.
-     * @return numero de simbolos distintos
-     */
     public int distinctSymbols() {
         ArrayList<String> distinct = new ArrayList<String>();
         for (String color : symbols()) {
@@ -163,11 +212,6 @@ public class slotMachine {
         return distinct.size();
     }
 
-    /**
-     * Retorna el color visible actualmente en cada rueda, ordenados
-     * de izquierda a derecha.
-     * @return arreglo con la configuracion actual de la maquina
-     */
     public String[] configuration() {
         String[] config = new String[wheels.size()];
         for (int i = 0; i < wheels.size(); i++) {
@@ -177,11 +221,6 @@ public class slotMachine {
         return config;
     }
 
-    /**
-     * Indica si la configuracion actual es ganadora, es decir, si todos
-     * los simbolos visibles en las ruedas son del mismo color.
-     * @return true si la configuracion actual es jackpot
-     */
     public boolean isJackpot() {
         String[] config = configuration();
         ok = true;
@@ -196,9 +235,6 @@ public class slotMachine {
         return true;
     }
 
-    /**
-     * Hace visible el simulador (habilita los mensajes emergentes y el dibujo).
-     */
     public void makeVisible() {
         visible = true;
         view.makeVisible();
@@ -206,38 +242,23 @@ public class slotMachine {
         ok = true;
     }
 
-    /**
-     * Hace invisible el simulador; sigue funcionando pero sin mostrar
-     * mensajes ni dibujo en pantalla.
-     */
     public void makeInvisible() {
         visible = false;
         view.makeInvisible();
         ok = true;
     }
 
-    /**
-     * Termina el simulador.
-     */
     public void exit() {
         view.makeInvisible();
         visible = false;
         ok = true;
+        System.exit(0);
     }
 
-    /**
-     * Indica si la ultima operacion realizada fue exitosa.
-     * @return true si la ultima operacion se logro realizar
-     */
     public boolean ok() {
         return ok;
     }
-    /**
-     * Ajusta una posicion 1-based al rango valido [1, max].
-     * @param pos posicion solicitada
-     * @param max valor maximo permitido
-     * @return posicion normalizada
-     */
+
     private int normalize(int pos, int max) {
         if (pos < 1) { 
             return 1;
@@ -252,11 +273,6 @@ public class slotMachine {
         return wheel >= 1 && wheel <= wheels.size();
     }
 
-    /**
-     * Actualiza el dibujo de la maquina para que refleje el estado
-     * actual (cuantas ruedas hay, que simbolo esta visible en cada una
-     * y si esa combinacion es ganadora).
-     */
     private void refreshView() {
         view.sync(wheels.size());
         view.setSymbolSets(buildSymbolSets());
@@ -264,10 +280,6 @@ public class slotMachine {
         view.setJackpot(isJackpot());
     }
 
-    /**
-     * Arma la lista con el conjunto de simbolos de cada rueda, para
-     * que la vista pueda usarlos en el efecto visual del spin.
-     */
     private ArrayList<ArrayList<String>> buildSymbolSets() {
         ArrayList<ArrayList<String>> sets = new ArrayList<ArrayList<String>>();
         for (Wheel w : wheels) {
@@ -275,5 +287,4 @@ public class slotMachine {
         }
         return sets;
     }
-
 }

@@ -1,23 +1,22 @@
 #BlueJ class context
-#Sun Aug 23 19:25:52 COT 2026
+#Sun Sep 06 20:38:56 EST 2026
 comment0.target=Wheel
-comment0.text=\r\n Represetacion de una rueda de la maquina tragamonedas\r\n\r\n @author Olman Alejandro Herrera || Ahmad Mustafayasser Diaz \r\n @version 0.1 (provisional)\r\n
+comment0.text=\r\n Representacion de una rueda de la maquina tragamonedas\r\n\r\n @author Olman Alejandro Herrera || Ahmad Mustafayasser Diaz \r\n @version 0.2\r\n
 comment1.target=Wheel()
+comment10.target=boolean isLocked()
+comment11.target=java.util.ArrayList getSymbols()
+comment12.target=int size()
 comment2.params=pos color
 comment2.target=void addSymbol(int, java.lang.String)
-comment2.text=\r\n Inserta un simbolo en la posicion indicada\r\n @param pos posicion \r\n @param color color del simbolo\r\n
 comment3.params=color
 comment3.target=boolean delSymbol(java.lang.String)
-comment3.text=\r\n Elimina la primera ocurrencia del color indicado.\r\n @param color color a eliminar\r\n @return true si se elimino algun simbolo\r\n
 comment4.params=color
 comment4.target=boolean setCurrent(java.lang.String)
-comment4.text=\r\n Fija el simbolo visible de la rueda, si existe entre sus simbolos.\r\n @param color color a mostrar\r\n @return true si el color existe en la rueda\r\n
 comment5.target=java.lang.String getCurrent()
-comment5.text=\r\n @return el color actualmente visible en la rueda, o null si no hay simbolos\r\n
 comment6.target=void spin()
-comment6.text=\r\n Selecciona al azar un nuevo simbolo visible.\r\n
-comment7.target=java.util.ArrayList getSymbols()
-comment7.text=\r\n @return los colores de los simbolos de la rueda en orden (desde 1)\r\n
-comment8.target=int size()
-comment8.text=\r\n @return cantidad de simbolos en la rueda\r\n
-numComments=9
+comment7.params=steps
+comment7.target=void spin(int)
+comment7.text=\r\n Gira la rueda una cantidad de pasos dada. \r\n Soporta pasos negativos para girar en reversa.\r\n
+comment8.target=void lock()
+comment9.target=void unlock()
+numComments=13
